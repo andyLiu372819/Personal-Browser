@@ -1,0 +1,1 @@
+"""Navigation controls design placeholder."""

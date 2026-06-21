@@ -1,0 +1,1 @@
+"""Tab management design placeholder."""
