@@ -1,9 +1,9 @@
-from PySide6.QtWidgets import QMainWindow, QToolBar
 from PySide6.QtCore import QUrl
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import QMainWindow
 from PySide6.QtGui import QAction
+from PySide6.QtWebEngineWidgets import QWebEngineView
+from PySide6.QtWidgets import QLineEdit, QMainWindow, QToolBar
 
+from search import build_url_from_input
 from settings import load_settings
 
 
@@ -16,6 +16,7 @@ class BrowserWindow(QMainWindow):
         self.resize(1200, 800)
 
         self.web_view = QWebEngineView()
+        self.web_view.urlChanged.connect(self.update_address_bar)
         self.setCentralWidget(self.web_view)
 
         self.create_navigation_bar()
@@ -43,6 +44,21 @@ class BrowserWindow(QMainWindow):
         home_action.triggered.connect(self.go_home)
         navigation_bar.addAction(home_action)
 
+        self.address_bar = QLineEdit()
+        self.address_bar.setPlaceholderText("Type your search or url here")
+        self.address_bar.returnPressed.connect(self.load_address_bar_url)
+        navigation_bar.addWidget(self.address_bar)
+
     def go_home(self):
         homepage = self.settings["homepage"]
         self.web_view.load(QUrl(homepage))
+
+    def load_address_bar_url(self):
+        user_input = self.address_bar.text()
+        search_engine = self.settings["default_search_engine"]
+        url = build_url_from_input(user_input, search_engine)
+        self.web_view.load(QUrl(url))
+
+    def update_address_bar(self, url: QUrl):
+        self.address_bar.setText(url.toString())
+
