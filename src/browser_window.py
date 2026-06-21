@@ -3,6 +3,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QLineEdit, QMainWindow, QToolBar
 
+from history import add_history_entry
 from search import build_url_from_input
 from settings import load_settings
 
@@ -17,6 +18,7 @@ class BrowserWindow(QMainWindow):
 
         self.web_view = QWebEngineView()
         self.web_view.urlChanged.connect(self.update_address_bar)
+        self.web_view.loadFinished.connect(self.record_history)
         self.setCentralWidget(self.web_view)
 
         self.create_navigation_bar()
@@ -62,3 +64,12 @@ class BrowserWindow(QMainWindow):
     def update_address_bar(self, url: QUrl):
         self.address_bar.setText(url.toString())
 
+    def record_history(self, success):
+        if not success:
+            return
+
+        title = self.web_view.title()
+        url = self.web_view.url().toString()
+
+        if url:
+            add_history_entry(title, url)
