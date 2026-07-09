@@ -19,10 +19,13 @@ This repository currently contains the project design skeleton. The first implem
 ## Project Structure
 
 ```text
-src/      Browser source modules
-data/     Local JSON data files for settings, history, and bookmarks
-assets/   Icons, theme files, and visual assets
-docs/     Design notes, milestones, and feature planning
+src/
+  browser/        Window, tabs, and browser-interface modules
+  search_engine/  Query routing and future indexing/ranking modules
+  *.py            Storage and application services
+data/             Local JSON data for settings, history, and bookmarks
+assets/           Icons, theme files, and visual assets
+docs/             Design notes, milestones, and feature planning
 ```
 
 ## First Milestone

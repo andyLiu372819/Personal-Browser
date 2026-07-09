@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import QApplication
-from browser_window import BrowserWindow
+from browser import BrowserWindow
 
 
 def main():

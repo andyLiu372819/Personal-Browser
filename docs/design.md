@@ -22,6 +22,16 @@ The first version should focus on a functional browsing loop:
 - PySide6-WebEngine for Chromium-based page rendering.
 - JSON files for early local data storage.
 
+## Code Architecture
+
+- `src/browser/` owns the Qt window, tab manager, navigation, and address-bar UI.
+- `src/search_engine/` owns query routing and will contain local ranking,
+  indexing, and result rendering.
+- Root-level `src` modules own local storage and application services such as
+  bookmarks, history, and settings.
+- Search-engine modules should not import Qt browser-window classes. The browser
+  calls the search engine through small functions and renders the returned data.
+
 ## Main Interface
 
 The first layout should have:

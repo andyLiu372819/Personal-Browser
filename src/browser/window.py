@@ -14,12 +14,13 @@ from PySide6.QtWidgets import (
 
 from bookmarks import add_bookmark, is_bookmarked, load_bookmarks, remove_bookmark
 from history import add_history_entry
-from search import build_url_from_input
+from search_engine import build_url_from_input
 from settings import load_settings
-from tab_manager import TabManager
+
+from .tabs import TabManager
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ICONS_DIR = PROJECT_ROOT / "assets" / "icons"
 
 
