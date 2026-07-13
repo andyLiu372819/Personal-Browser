@@ -17,22 +17,37 @@ class Document:
         self.visited_at = visited
 
 
-def build_documents():
-    histories = load_history()
-    bookmarks = load_bookmarks()
+def build_documents(histories=None, bookmarks=None):
+    if histories is None:
+        histories = load_history()
+    if bookmarks is None:
+        bookmarks = load_bookmarks()
+
     documents = []
     seen = set()
 
-    bookmark_url = {i["url"] for i in bookmarks}
+    bookmark_urls = {bookmark["url"] for bookmark in bookmarks}
 
-    for i in histories:
-        bookmarked = i["url"] in bookmark_url
-        seen.add(i["url"])
-        documents.append(Document(i["title"], i["url"], "history", bookmarked, i["visited_at"]))
+    for history_entry in histories:
+        url = history_entry["url"]
+        bookmarked = url in bookmark_urls
+        seen.add(url)
+        documents.append(
+            Document(
+                history_entry["title"],
+                url,
+                "history",
+                bookmarked,
+                history_entry["visited_at"],
+            )
+        )
 
-    for j in bookmarks:
-        if j["url"] not in seen:
-            documents.append(Document(j["title"], j["url"], "bookmark", True, None))
+    for bookmark_entry in bookmarks:
+        url = bookmark_entry["url"]
+        if url not in seen:
+            documents.append(
+                Document(bookmark_entry["title"], url, "bookmark", True, None)
+            )
 
     return documents
 
@@ -44,34 +59,34 @@ def score(query, document: Document):
     if not words:
         return num
 
+    title_lower = document.title.lower()
+    url_lower = document.url.lower()
+    matched = False
+
     for word in words:
-        title, url, booked = False, False, False
+        title = word in title_lower
+        url = word in url_lower
 
-        title_lower = document.title.lower()
-        url_lower = document.url.lower()
-
-        if word in title_lower:
-            title = True
-        if word in url_lower:
-            url = True
-        
         if title or url:
-            booked = document.bookmarked   
-            
-        num += (TITLE_WORD_MATCH if title else 0) + (URL_WORD_MATCH if url else 0) + (BOOKMARKED if booked else 0)
-            
+            matched = True
+
+        num += (TITLE_WORD_MATCH if title else 0) + (URL_WORD_MATCH if url else 0)
+
+    if matched and document.bookmarked:
+        num += BOOKMARKED
 
     return num
 
 
-def search(query):
+def search(query, documents=None):
     results = []
-    documents = build_documents()
+    if documents is None:
+        documents = build_documents()
 
-    for i in documents:
-        scores = score(query, i)
+    for document in documents:
+        scores = score(query, document)
         if scores > THRESHOLD:
-            results.append((scores, i))
+            results.append((scores, document))
 
     results.sort(key=lambda result: result[0], reverse=True)
     return results
