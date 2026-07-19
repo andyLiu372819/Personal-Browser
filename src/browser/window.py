@@ -13,10 +13,11 @@ from PySide6.QtWidgets import (
 )
 
 from bookmarks import add_bookmark, is_bookmarked, load_bookmarks, remove_bookmark
-from history import add_history_entry
-from search_engine import build_url_from_input
+from history import add_history_entry, load_history
 from settings import load_settings
 
+from .address_bar import resolve_address_bar_input
+from .history_page import render_history_page
 from .tabs import TabManager
 
 
@@ -191,6 +192,11 @@ class BrowserWindow(QMainWindow):
         self.bookmarks_button.setMenu(self.bookmarks_menu)
         navigation_bar.addWidget(self.bookmarks_button)
 
+        history_action = create_icon_action("history", "History", self)
+        history_action.setShortcut("Ctrl+H")
+        history_action.triggered.connect(self.open_history_page)
+        navigation_bar.addAction(history_action)
+
     def connect_tab(self, web_view):
         web_view.urlChanged.connect(
             lambda url, view=web_view: self.on_url_changed(view, url)
@@ -237,9 +243,19 @@ class BrowserWindow(QMainWindow):
         if not user_input:
             return
 
-        search_engine = self.settings["default_search_engine"]
-        url = build_url_from_input(user_input, search_engine)
-        self.current_web_view().load(QUrl(url))
+        web_view = self.current_web_view()
+        if web_view is None:
+            return
+
+        action = resolve_address_bar_input(
+            user_input,
+            self.settings["default_search_engine"],
+        )
+
+        if action.kind == "url":
+            web_view.load(QUrl(action.content))
+        elif action.kind == "html":
+            web_view.setHtml(action.content)
 
     def focus_address_bar(self):
         self.address_bar.setFocus()
@@ -344,6 +360,14 @@ class BrowserWindow(QMainWindow):
         web_view = self.current_web_view()
         if web_view:
             web_view.load(QUrl(url))
+
+    def open_history_page(self):
+        web_view = self.current_web_view()
+        if web_view is None:
+            return
+
+        html = render_history_page(load_history())
+        web_view.setHtml(html)
 
     def remove_bookmark_from_menu(self, url):
         remove_bookmark(url)
