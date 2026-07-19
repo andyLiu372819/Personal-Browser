@@ -6,8 +6,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SETTINGS_FILE = PROJECT_ROOT / "data" / "settings.json"
 
 DEFAULT_SETTINGS = {
-    "homepage": "https://duckduckgo.com",
-    "default_search_engine": "duckduckgo",
+    "homepage": "personal-browser://home",
+    "default_search_engine": "personal",
+    "fallback_search_engine": "duckduckgo",
     "theme": "dark",
 }
 

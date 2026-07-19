@@ -1,14 +1,40 @@
 from PySide6.QtCore import Signal
+from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QTabWidget
+
+from .internal_pages import extract_internal_search_query
+
+
+class BrowserPage(QWebEnginePage):
+    """A web page that handles browser-owned internal navigation."""
+
+    internal_search_requested = Signal(str)
+
+    def acceptNavigationRequest(self, url, navigation_type, is_main_frame):
+        query = extract_internal_search_query(url)
+
+        if is_main_frame and query is not None:
+            if query:
+                self.internal_search_requested.emit(query)
+            return False
+
+        return super().acceptNavigationRequest(url, navigation_type, is_main_frame)
 
 
 class BrowserView(QWebEngineView):
     """A web view that opens pop-up requests in a browser tab."""
 
+    internal_search_requested = Signal(str)
+
     def __init__(self, tab_manager):
         super().__init__()
         self.tab_manager = tab_manager
+        self.browser_page = BrowserPage(self)
+        self.browser_page.internal_search_requested.connect(
+            self.internal_search_requested.emit
+        )
+        self.setPage(self.browser_page)
 
     def createWindow(self, window_type):
         return self.tab_manager.add_tab()

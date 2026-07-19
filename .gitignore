@@ -2,3 +2,5 @@
 .venv-broken/
 __pycache__/
 *.py[cod]
+data/crawled_pages.json
+data/internal_pages/

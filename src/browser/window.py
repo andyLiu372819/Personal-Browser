@@ -14,10 +14,13 @@ from PySide6.QtWidgets import (
 
 from bookmarks import add_bookmark, is_bookmarked, load_bookmarks, remove_bookmark
 from history import add_history_entry, load_history
+from search_engine import crawl_and_store
 from settings import load_settings
 
 from .address_bar import resolve_address_bar_input
+from .home_page import render_home_page
 from .history_page import render_history_page
+from .internal_pages import INTERNAL_HOME_URL, is_internal_page_url, write_internal_page
 from .tabs import TabManager
 
 
@@ -60,6 +63,7 @@ class BrowserWindow(QMainWindow):
 
         self.tab_manager = TabManager()
         self.setCentralWidget(self.tab_manager)
+        self.internal_address_text_by_view = {}
 
         self.create_navigation_bar()
 
@@ -67,7 +71,7 @@ class BrowserWindow(QMainWindow):
         self.tab_manager.currentChanged.connect(self.on_current_tab_changed)
         self.tab_manager.last_tab_close_requested.connect(self.close)
 
-        self.add_new_tab(QUrl(self.settings["homepage"]), focus_address=False)
+        self.add_new_tab(focus_address=False)
 
     def create_navigation_bar(self):
         navigation_bar = QToolBar("Navigation")
@@ -197,7 +201,14 @@ class BrowserWindow(QMainWindow):
         history_action.triggered.connect(self.open_history_page)
         navigation_bar.addAction(history_action)
 
+        crawl_action = create_icon_action("crawl", "Crawl Current Site", self)
+        crawl_action.triggered.connect(self.crawl_current_site)
+        navigation_bar.addAction(crawl_action)
+
     def connect_tab(self, web_view):
+        web_view.internal_search_requested.connect(
+            lambda query, view=web_view: self.load_search_query(view, query)
+        )
         web_view.urlChanged.connect(
             lambda url, view=web_view: self.on_url_changed(view, url)
         )
@@ -209,11 +220,17 @@ class BrowserWindow(QMainWindow):
         )
 
     def add_new_tab(self, url=None, focus_address=True):
-        target_url = url or QUrl(self.settings["homepage"])
-        self.tab_manager.add_tab(target_url)
+        web_view = self.tab_manager.add_tab()
+
+        if url is None:
+            self.load_home_page(web_view)
+        else:
+            web_view.load(url)
 
         if focus_address:
             self.focus_address_bar()
+
+        return web_view
 
     def current_web_view(self):
         return self.tab_manager.current_web_view()
@@ -236,7 +253,7 @@ class BrowserWindow(QMainWindow):
     def go_home(self):
         web_view = self.current_web_view()
         if web_view:
-            web_view.load(QUrl(self.settings["homepage"]))
+            self.load_home_page(web_view)
 
     def load_address_bar_url(self):
         user_input = self.address_bar.text().strip()
@@ -250,12 +267,46 @@ class BrowserWindow(QMainWindow):
         action = resolve_address_bar_input(
             user_input,
             self.settings["default_search_engine"],
+            self.settings["fallback_search_engine"],
         )
 
+        self.load_address_bar_action(web_view, action, address_text=user_input)
+
+    def load_search_query(self, web_view, query):
+        self.address_bar.setText(query)
+        action = resolve_address_bar_input(
+            query,
+            self.settings["default_search_engine"],
+            self.settings["fallback_search_engine"],
+        )
+
+        self.load_address_bar_action(web_view, action, address_text=query)
+
+    def load_address_bar_action(self, web_view, action, address_text=""):
         if action.kind == "url":
             web_view.load(QUrl(action.content))
         elif action.kind == "html":
-            web_view.setHtml(action.content)
+            self.load_internal_html_page(
+                web_view,
+                "search-results",
+                action.content,
+                address_text=address_text,
+            )
+
+    def load_home_page(self, web_view):
+        homepage = self.settings.get("homepage", INTERNAL_HOME_URL)
+
+        if homepage == INTERNAL_HOME_URL:
+            self.load_internal_html_page(web_view, "home", render_home_page())
+            return
+
+        web_view.load(QUrl(homepage))
+
+    def load_internal_html_page(self, web_view, page_name, html, address_text=""):
+        page_path = write_internal_page(page_name, html)
+        page_url = QUrl.fromLocalFile(str(page_path))
+        self.internal_address_text_by_view[web_view] = address_text
+        web_view.load(page_url)
 
     def focus_address_bar(self):
         self.address_bar.setFocus()
@@ -275,7 +326,12 @@ class BrowserWindow(QMainWindow):
         if web_view is not self.current_web_view():
             return
 
-        self.address_bar.setText(url.toString())
+        url_text = url.toString()
+        if is_internal_page_url(url_text):
+            self.address_bar.setText(self.internal_address_text_by_view.get(web_view, ""))
+        else:
+            self.internal_address_text_by_view.pop(web_view, None)
+            self.address_bar.setText(url_text)
         self.address_bar.setCursorPosition(0)
         self.update_navigation_actions()
         self.update_bookmark_action()
@@ -299,7 +355,9 @@ class BrowserWindow(QMainWindow):
     def update_bookmark_action(self):
         web_view = self.current_web_view()
         url = web_view.url().toString() if web_view else ""
-        can_bookmark = bool(url and url != "about:blank")
+        can_bookmark = bool(
+            url and url != "about:blank" and not is_internal_page_url(url)
+        )
 
         self.bookmark_action.setEnabled(can_bookmark)
 
@@ -367,7 +425,29 @@ class BrowserWindow(QMainWindow):
             return
 
         html = render_history_page(load_history())
-        web_view.setHtml(html)
+        self.load_internal_html_page(web_view, "history", html)
+
+    def crawl_current_site(self):
+        web_view = self.current_web_view()
+        if web_view is None:
+            return
+
+        url = web_view.url().toString()
+        if not url.startswith(("http://", "https://")):
+            self.statusBar().showMessage("Open a website before crawling.", 5000)
+            return
+
+        self.statusBar().showMessage("Crawling current site...")
+
+        try:
+            pages = crawl_and_store(url, max_pages=10, max_depth=1)
+        except Exception as error:
+            self.statusBar().showMessage(f"Crawl failed: {error}", 8000)
+            return
+
+        self.statusBar().showMessage(
+            f"Indexed {len(pages)} page(s) from this site.", 8000
+        )
 
     def remove_bookmark_from_menu(self, url):
         remove_bookmark(url)
@@ -380,5 +460,10 @@ class BrowserWindow(QMainWindow):
         title = web_view.title()
         url = web_view.url().toString()
 
-        if url and url != "about:blank":
+        if (
+            url
+            and url != "about:blank"
+            and not url.startswith("data:")
+            and not is_internal_page_url(url)
+        ):
             add_history_entry(title, url)

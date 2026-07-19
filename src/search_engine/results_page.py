@@ -8,12 +8,15 @@ def render_results_page(query, results):
     for score, document in results:
         safe_title = escape(document.title)
         safe_url = escape(document.url)
+        safe_content = escape(document.content[:240].strip())
+        snippet_html = f"<p>{safe_content}</p>" if safe_content else ""
 
         result_items.append(
             f"""
         <article>
             <h2><a href="{safe_url}">{safe_title}</a></h2>
             <p>{safe_url}</p>
+            {snippet_html}
             <small>Score: {score}</small>
         </article>
         """

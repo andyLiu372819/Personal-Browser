@@ -1,5 +1,6 @@
 {
-  "homepage": "https://duckduckgo.com",
-  "default_search_engine": "duckduckgo",
+  "homepage": "personal-browser://home",
+  "default_search_engine": "personal",
+  "fallback_search_engine": "duckduckgo",
   "theme": "dark"
 }

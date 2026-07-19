@@ -3,10 +3,10 @@
 ## Core Features
 
 - Load web pages.
-- Search from the address bar.
+- Search from the address bar using Personal Search by default.
 - Navigate backward and forward.
 - Reload the current page.
-- Return to the homepage.
+- Return to a custom local homepage with a centralized search bar.
 - Open and close tabs.
 - Save bookmarks.
 - Save browsing history.
@@ -19,17 +19,20 @@
 - Reader mode.
 - Basic ad blocking.
 - Session restore.
-- Search over local history and bookmarks.
 - Custom new-tab page.
 - Theme customization.
 
-## Future Search Engine Features
+## Search Engine Features
 
-The long-term search engine can start as personal search over local data:
+Personal Search searches local browser data first:
 
 - Search bookmarks.
 - Search history.
+- Search crawled page content.
 - Rank exact title matches first.
+- Search from the custom homepage.
 - Fall back to DuckDuckGo or another provider when there are no local results.
+- Crawl selected websites with a safe page/depth limit.
 
-Later, it can grow into a small crawler and indexer for selected websites.
+Later, it can grow into a stronger indexer with better snippets, recency scoring,
+and crawl scheduling.
