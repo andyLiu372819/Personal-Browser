@@ -1,12 +1,20 @@
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
+from search_engine import DEFAULT_SEARCH_RESULT_LIMIT, normalize_result_limit
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 INTERNAL_PAGES_DIR = PROJECT_ROOT / "data" / "internal_pages"
 INTERNAL_BROWSER_SCHEME = "personal-browser"
 INTERNAL_HOME_URL = f"{INTERNAL_BROWSER_SCHEME}://home"
 INTERNAL_SEARCH_URL = f"{INTERNAL_BROWSER_SCHEME}://search"
+
+
+class InternalSearchRequest:
+    def __init__(self, query, result_limit=DEFAULT_SEARCH_RESULT_LIMIT):
+        self.query = query
+        self.result_limit = normalize_result_limit(result_limit)
 
 
 def write_internal_page(name, html):
@@ -31,6 +39,11 @@ def is_internal_page_url(url, page_name=None):
 
 
 def extract_internal_search_query(url):
+    request = extract_internal_search_request(url)
+    return request.query if request else None
+
+
+def extract_internal_search_request(url):
     url_text = url.toString() if hasattr(url, "toString") else str(url)
     parsed_url = urlparse(url_text)
 
@@ -40,5 +53,8 @@ def extract_internal_search_query(url):
     ):
         return None
 
-    values = parse_qs(parsed_url.query).get("q", [""])
-    return values[0].strip()
+    parsed_query = parse_qs(parsed_url.query)
+    values = parsed_query.get("q", [""])
+    result_limits = parsed_query.get("limit", [DEFAULT_SEARCH_RESULT_LIMIT])
+
+    return InternalSearchRequest(values[0].strip(), result_limits[0])

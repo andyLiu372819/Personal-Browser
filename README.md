@@ -13,15 +13,16 @@ This repository currently contains the project design skeleton. The first implem
 - Local bookmarks
 - Local browsing history
 - Settings saved as JSON
-- Personal search over history, bookmarks, and crawled pages
+- Personal search over crawled pages and web results, with history-based ranking boosts
 - Bounded crawler for indexing selected websites
+- User-selectable search result counts up to 100 results
 
 ## Project Structure
 
 ```text
 src/
   browser/        Window, tabs, and browser-interface modules
-  search_engine/  Query routing, local ranking, result rendering, and crawling
+  search_engine/  Query routing, local ranking, web search, result rendering, and crawling
   *.py            Storage and application services
 data/             Local JSON data for settings, history, and bookmarks
 assets/           Icons, theme files, and visual assets
@@ -35,5 +36,7 @@ Build a desktop browser that:
 - Opens a main window
 - Loads the custom Personal Browser homepage
 - Lets the user type a URL or search query
+- Lets the user choose how many search results to display
 - Supports basic navigation controls
-- Uses Personal Search as the default search engine
+- Uses Personal Search as the default search engine, including live web results
+- Boosts results from sites the user has already visited

@@ -10,7 +10,7 @@ from search_engine import Document, build_documents, score, search
 
 
 class LocalSearchTests(unittest.TestCase):
-    def test_build_documents_merges_history_and_bookmark_data(self):
+    def test_build_documents_uses_only_crawled_pages(self):
         histories = [
             {
                 "title": "Python Documentation",
@@ -35,29 +35,29 @@ class LocalSearchTests(unittest.TestCase):
                 "added_at": "2026-07-12T10:15:00",
             },
         ]
+        crawled_pages = [
+            {
+                "title": "Crawled Python Guide",
+                "url": "https://example.com/crawled-python",
+                "content": "indexed page content",
+                "crawled_at": "2026-07-12T10:20:00",
+            }
+        ]
 
-        documents = build_documents(histories, bookmarks)
-        documents_by_url = {document.url: document for document in documents}
+        documents = build_documents(histories, bookmarks, crawled_pages)
 
-        self.assertEqual(len(documents), 3)
-        self.assertTrue(documents_by_url["https://docs.python.org/3/"].bookmarked)
-        self.assertEqual(
-            documents_by_url["https://docs.python.org/3/"].source,
-            "history",
-        )
-        self.assertEqual(
-            documents_by_url["https://example.com/search-engine-notes"].source,
-            "bookmark",
-        )
-        self.assertIsNone(
-            documents_by_url["https://example.com/search-engine-notes"].visited_at
-        )
+        self.assertEqual(len(documents), 1)
+        self.assertEqual(documents[0].title, "Crawled Python Guide")
+        self.assertEqual(documents[0].source, "crawl")
+        self.assertFalse(documents[0].bookmarked)
+        self.assertIsNone(documents[0].visited_at)
+        self.assertEqual(documents[0].content, "indexed page content")
 
     def test_score_is_case_insensitive(self):
         document = Document(
             "Python Documentation",
             "https://docs.python.org/3/",
-            "history",
+            "crawl",
             False,
             "2026-07-12T10:00:00",
         )
@@ -65,28 +65,28 @@ class LocalSearchTests(unittest.TestCase):
         self.assertEqual(score("PYTHON", document), score("python", document))
         self.assertGreater(score("PYTHON", document), 0)
 
-    def test_bookmark_bonus_is_added_once_per_document(self):
+    def test_bookmark_flag_does_not_add_score_bonus(self):
         document = Document(
             "Python Docs",
             "https://example.com/python",
-            "history",
+            "crawl",
             True,
             "2026-07-12T10:00:00",
         )
 
-        self.assertEqual(score("python docs", document), 21)
+        self.assertEqual(score("python docs", document), 11)
 
     def test_search_sorts_results_by_score(self):
         documents = [
-            Document("Python", "https://example.com", "history", False, None),
+            Document("Python", "https://example.com", "crawl", False, None),
             Document(
                 "Python Bookmark",
                 "https://docs.python.org/3/",
-                "bookmark",
+                "crawl",
                 True,
                 None,
             ),
-            Document("Unrelated", "https://example.com/other", "history", False, None),
+            Document("Unrelated", "https://example.com/other", "crawl", False, None),
         ]
 
         results = search("python", documents)
@@ -97,7 +97,7 @@ class LocalSearchTests(unittest.TestCase):
 
     def test_blank_query_returns_no_results(self):
         documents = [
-            Document("Python", "https://docs.python.org/3/", "history", True, None)
+            Document("Python", "https://docs.python.org/3/", "crawl", True, None)
         ]
 
         self.assertEqual(search("   ", documents), [])

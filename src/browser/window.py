@@ -14,7 +14,15 @@ from PySide6.QtWidgets import (
 
 from bookmarks import add_bookmark, is_bookmarked, load_bookmarks, remove_bookmark
 from history import add_history_entry, load_history
-from search_engine import crawl_and_store
+from search_engine import (
+    DEFAULT_CRAWLER_MAX_DEPTH,
+    DEFAULT_CRAWLER_MAX_PAGES,
+    DEFAULT_SEARCH_RESULT_LIMIT,
+    crawl_and_store,
+    normalize_crawler_depth,
+    normalize_crawler_page_limit,
+    normalize_result_limit,
+)
 from settings import load_settings
 
 from .address_bar import resolve_address_bar_input
@@ -207,7 +215,11 @@ class BrowserWindow(QMainWindow):
 
     def connect_tab(self, web_view):
         web_view.internal_search_requested.connect(
-            lambda query, view=web_view: self.load_search_query(view, query)
+            lambda query, result_limit, view=web_view: self.load_search_query(
+                view,
+                query,
+                result_limit,
+            )
         )
         web_view.urlChanged.connect(
             lambda url, view=web_view: self.on_url_changed(view, url)
@@ -268,16 +280,19 @@ class BrowserWindow(QMainWindow):
             user_input,
             self.settings["default_search_engine"],
             self.settings["fallback_search_engine"],
+            self.search_result_limit(),
         )
 
         self.load_address_bar_action(web_view, action, address_text=user_input)
 
-    def load_search_query(self, web_view, query):
+    def load_search_query(self, web_view, query, result_limit=None):
+        result_limit = self.search_result_limit(result_limit)
         self.address_bar.setText(query)
         action = resolve_address_bar_input(
             query,
             self.settings["default_search_engine"],
             self.settings["fallback_search_engine"],
+            result_limit,
         )
 
         self.load_address_bar_action(web_view, action, address_text=query)
@@ -297,7 +312,11 @@ class BrowserWindow(QMainWindow):
         homepage = self.settings.get("homepage", INTERNAL_HOME_URL)
 
         if homepage == INTERNAL_HOME_URL:
-            self.load_internal_html_page(web_view, "home", render_home_page())
+            self.load_internal_html_page(
+                web_view,
+                "home",
+                render_home_page(result_limit=self.search_result_limit()),
+            )
             return
 
         web_view.load(QUrl(homepage))
@@ -438,15 +457,28 @@ class BrowserWindow(QMainWindow):
             return
 
         self.statusBar().showMessage("Crawling current site...")
+        max_pages = normalize_crawler_page_limit(
+            self.settings.get("crawler_max_pages", DEFAULT_CRAWLER_MAX_PAGES)
+        )
+        max_depth = normalize_crawler_depth(
+            self.settings.get("crawler_max_depth", DEFAULT_CRAWLER_MAX_DEPTH)
+        )
 
         try:
-            pages = crawl_and_store(url, max_pages=10, max_depth=1)
+            pages = crawl_and_store(url, max_pages=max_pages, max_depth=max_depth)
         except Exception as error:
             self.statusBar().showMessage(f"Crawl failed: {error}", 8000)
             return
 
         self.statusBar().showMessage(
             f"Indexed {len(pages)} page(s) from this site.", 8000
+        )
+
+    def search_result_limit(self, value=None):
+        return normalize_result_limit(
+            self.settings.get("search_results_limit", DEFAULT_SEARCH_RESULT_LIMIT)
+            if value is None
+            else value
         )
 
     def remove_bookmark_from_menu(self, url):

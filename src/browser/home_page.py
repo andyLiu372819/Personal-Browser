@@ -1,10 +1,28 @@
 from html import escape
 
+from search_engine import (
+    DEFAULT_SEARCH_RESULT_LIMIT,
+    SEARCH_RESULT_LIMIT_OPTIONS,
+    normalize_result_limit,
+)
+
 from .internal_pages import INTERNAL_SEARCH_URL
 
 
-def render_home_page(app_name="Personal Browser"):
+def render_result_limit_options(selected_limit):
+    selected_limit = normalize_result_limit(selected_limit)
+    options = []
+
+    for option in SEARCH_RESULT_LIMIT_OPTIONS:
+        selected = " selected" if option == selected_limit else ""
+        options.append(f'<option value="{option}"{selected}>{option} results</option>')
+
+    return "\n".join(options)
+
+
+def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RESULT_LIMIT):
     safe_app_name = escape(app_name)
+    result_limit_options = render_result_limit_options(result_limit)
 
     return f"""
     <!doctype html>
@@ -149,6 +167,15 @@ def render_home_page(app_name="Personal Browser"):
                 box-shadow: 0 10px 22px rgba(73, 104, 61, 0.24);
             }}
 
+            select {{
+                border: 1px solid rgba(73, 104, 61, 0.16);
+                border-radius: 999px;
+                padding: 0 12px;
+                color: var(--ink);
+                background: rgba(255, 255, 255, 0.72);
+                font-weight: 700;
+            }}
+
             button:hover {{
                 transform: translateY(-1px);
             }}
@@ -182,6 +209,10 @@ def render_home_page(app_name="Personal Browser"):
                 }}
 
                 button {{
+                    min-height: 48px;
+                }}
+
+                select {{
                     min-height: 48px;
                 }}
             }}
@@ -219,8 +250,8 @@ def render_home_page(app_name="Personal Browser"):
 
             <h1>{safe_app_name}</h1>
             <p class="subtitle">
-                Search your bookmarks, history, and crawled pages first. If your local
-                index has not seen it yet, the browser will gracefully ask the wider web.
+                Search crawled pages and the wider web from one calm place. Sites
+                you have visited before get a small ranking boost.
             </p>
 
             <form action="{INTERNAL_SEARCH_URL}" method="get">
@@ -232,14 +263,17 @@ def render_home_page(app_name="Personal Browser"):
                     autofocus
                     required
                 >
+                <select name="limit" aria-label="Number of search results">
+                    {result_limit_options}
+                </select>
                 <button type="submit">Search</button>
             </form>
 
             <section class="hint-row" aria-label="Search features">
-                <span class="hint">Bookmarks</span>
-                <span class="hint">History</span>
+                <span class="hint">Web results</span>
+                <span class="hint">History boost</span>
                 <span class="hint">Crawled pages</span>
-                <span class="hint">Web fallback</span>
+                <span class="hint">Result limit</span>
             </section>
         </main>
     </body>

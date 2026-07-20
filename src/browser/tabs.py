@@ -3,20 +3,23 @@ from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QTabWidget
 
-from .internal_pages import extract_internal_search_query
+from .internal_pages import extract_internal_search_request
 
 
 class BrowserPage(QWebEnginePage):
     """A web page that handles browser-owned internal navigation."""
 
-    internal_search_requested = Signal(str)
+    internal_search_requested = Signal(str, int)
 
     def acceptNavigationRequest(self, url, navigation_type, is_main_frame):
-        query = extract_internal_search_query(url)
+        request = extract_internal_search_request(url)
 
-        if is_main_frame and query is not None:
-            if query:
-                self.internal_search_requested.emit(query)
+        if is_main_frame and request is not None:
+            if request.query:
+                self.internal_search_requested.emit(
+                    request.query,
+                    request.result_limit,
+                )
             return False
 
         return super().acceptNavigationRequest(url, navigation_type, is_main_frame)
@@ -25,7 +28,7 @@ class BrowserPage(QWebEnginePage):
 class BrowserView(QWebEngineView):
     """A web view that opens pop-up requests in a browser tab."""
 
-    internal_search_requested = Signal(str)
+    internal_search_requested = Signal(str, int)
 
     def __init__(self, tab_manager):
         super().__init__()

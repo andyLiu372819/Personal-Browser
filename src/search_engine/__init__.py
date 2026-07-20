@@ -1,4 +1,6 @@
 from .crawler import (
+    DEFAULT_CRAWLER_MAX_DEPTH,
+    DEFAULT_CRAWLER_MAX_PAGES,
     FetchedPage,
     crawl_and_store,
     crawl_site,
@@ -6,6 +8,8 @@ from .crawler import (
     load_crawled_pages,
     merge_crawled_pages,
     normalize_url,
+    normalize_crawler_depth,
+    normalize_crawler_page_limit,
     save_crawled_pages,
 )
 from .routing import (
@@ -15,27 +19,69 @@ from .routing import (
     looks_like_url,
     uses_personal_search,
 )
+from .hybrid_search import (
+    DEFAULT_SEARCH_RESULT_LIMIT,
+    HISTORY_VISIT_BONUS,
+    MAX_SEARCH_RESULT_LIMIT,
+    SEARCH_RESULT_LIMIT_OPTIONS,
+    apply_history_boost,
+    build_history_index,
+    history_visit_for_url,
+    normalize_result_limit,
+    personal_search,
+)
 from .local_search import Document, build_documents, score, search
 from .results_page import render_results_page
+from .web_search import (
+    DEFAULT_WEB_SEARCH_PROVIDER,
+    WebSearchResult,
+    build_duckduckgo_next_url,
+    build_web_search_url,
+    clean_duckduckgo_result_url,
+    parse_duckduckgo_page,
+    parse_duckduckgo_results,
+    search_web,
+)
 
 
 __all__ = [
     "Document",
     "DEFAULT_EXTERNAL_SEARCH_ENGINE",
+    "DEFAULT_CRAWLER_MAX_DEPTH",
+    "DEFAULT_CRAWLER_MAX_PAGES",
+    "DEFAULT_SEARCH_RESULT_LIMIT",
+    "DEFAULT_WEB_SEARCH_PROVIDER",
     "FetchedPage",
+    "HISTORY_VISIT_BONUS",
+    "MAX_SEARCH_RESULT_LIMIT",
     "PERSONAL_SEARCH_ENGINE",
+    "SEARCH_RESULT_LIMIT_OPTIONS",
+    "WebSearchResult",
+    "apply_history_boost",
     "build_documents",
+    "build_duckduckgo_next_url",
+    "build_history_index",
     "build_url_from_input",
+    "build_web_search_url",
+    "clean_duckduckgo_result_url",
     "crawl_and_store",
     "crawl_site",
     "extract_page_data",
     "load_crawled_pages",
     "looks_like_url",
     "merge_crawled_pages",
+    "history_visit_for_url",
     "normalize_url",
+    "normalize_crawler_depth",
+    "normalize_crawler_page_limit",
+    "normalize_result_limit",
+    "parse_duckduckgo_page",
+    "parse_duckduckgo_results",
+    "personal_search",
     "render_results_page",
     "save_crawled_pages",
     "score",
     "search",
+    "search_web",
     "uses_personal_search",
 ]

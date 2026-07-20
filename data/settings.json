@@ -2,5 +2,8 @@
   "homepage": "personal-browser://home",
   "default_search_engine": "personal",
   "fallback_search_engine": "duckduckgo",
+  "search_results_limit": 10,
+  "crawler_max_pages": 75,
+  "crawler_max_depth": 2,
   "theme": "dark"
 }

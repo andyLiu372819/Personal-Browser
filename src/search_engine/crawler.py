@@ -11,12 +11,35 @@ from urllib.request import Request, urlopen
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 CRAWLED_PAGES_FILE = PROJECT_ROOT / "data" / "crawled_pages.json"
 USER_AGENT = "PersonalBrowserCrawler/1.0"
+DEFAULT_CRAWLER_MAX_PAGES = 75
+DEFAULT_CRAWLER_MAX_DEPTH = 2
+MAX_CRAWLER_MAX_PAGES = 100
+MIN_CRAWLER_MAX_PAGES = 1
+MAX_CRAWLER_MAX_DEPTH = 4
 
 
 @dataclass(frozen=True)
 class FetchedPage:
     url: str
     html: str
+
+
+def normalize_crawler_page_limit(value, default=DEFAULT_CRAWLER_MAX_PAGES):
+    try:
+        page_limit = int(value)
+    except (TypeError, ValueError):
+        page_limit = default
+
+    return max(MIN_CRAWLER_MAX_PAGES, min(page_limit, MAX_CRAWLER_MAX_PAGES))
+
+
+def normalize_crawler_depth(value, default=DEFAULT_CRAWLER_MAX_DEPTH):
+    try:
+        depth = int(value)
+    except (TypeError, ValueError):
+        depth = default
+
+    return max(0, min(depth, MAX_CRAWLER_MAX_DEPTH))
 
 
 class PageHTMLParser(HTMLParser):
@@ -118,11 +141,18 @@ def fetch_page(url, timeout=10, max_bytes=1_000_000):
     return FetchedPage(final_url, raw_html.decode(charset, errors="replace"))
 
 
-def crawl_site(start_url, max_pages=25, max_depth=1, fetcher=fetch_page):
+def crawl_site(
+    start_url,
+    max_pages=DEFAULT_CRAWLER_MAX_PAGES,
+    max_depth=DEFAULT_CRAWLER_MAX_DEPTH,
+    fetcher=fetch_page,
+):
     normalized_start = normalize_url(start_url)
     if normalized_start is None:
         return []
 
+    max_pages = normalize_crawler_page_limit(max_pages)
+    max_depth = normalize_crawler_depth(max_depth)
     crawled_pages = []
     queued_urls = {normalized_start}
     visited_urls = set()
@@ -199,7 +229,12 @@ def merge_crawled_pages(existing_pages, new_pages):
     return list(pages_by_url.values())
 
 
-def crawl_and_store(start_url, max_pages=25, max_depth=1, fetcher=fetch_page):
+def crawl_and_store(
+    start_url,
+    max_pages=DEFAULT_CRAWLER_MAX_PAGES,
+    max_depth=DEFAULT_CRAWLER_MAX_DEPTH,
+    fetcher=fetch_page,
+):
     new_pages = crawl_site(start_url, max_pages, max_depth, fetcher)
     existing_pages = load_crawled_pages()
     save_crawled_pages(merge_crawled_pages(existing_pages, new_pages))
