@@ -2,7 +2,7 @@
 
 ## Product Goal
 
-Personal Browser should be a small desktop browser for everyday use and learning. It should feel simple, private, and understandable: local files store user data, the interface stays minimal, and each feature is built in clear layers.
+Nexus Browser should be a small desktop browser for everyday use and learning. It should feel simple, private, tech-forward, and understandable: local files store user data, the interface stays minimal, and each feature is built in clear layers.
 
 ## Version 1 Scope
 
@@ -14,6 +14,7 @@ The first version should focus on a functional browsing loop:
 - Accept either a URL or a search query.
 - Navigate backward, forward, reload, and home.
 - Record visited pages in local history.
+- Let users edit browser/search/crawler/theme settings in the app.
 
 ## Recommended Stack
 
@@ -66,6 +67,9 @@ Settings should store:
 - Search result display limit
 - Crawler page and depth limits
 - Theme
+- Theme mode
+- Theme accent
+- Custom accent color
 
 ## Search Behavior
 
@@ -74,15 +78,21 @@ The address bar should decide whether the input is a URL or a search query.
 - Inputs starting with `http://` or `https://` open directly.
 - Domain-like inputs such as `example.com` become `https://example.com`.
 - Other text uses the configured search engine.
-- When the configured engine is Personal Search, crawled pages are searched
+- When the configured engine is Nexus Search, crawled pages are searched
   alongside live web results. History is only used as a ranking signal: results
   from previously visited URLs or sites receive a small score boost.
-- If Personal Search cannot load integrated web results, the internal results
+- If Nexus Search cannot load integrated web results, the internal results
   page still renders and offers direct links to external provider searches.
 - The homepage search box submits through an internal browser URL, which the Qt
-  page intercepts and routes into the same Personal Search flow as the address
+  page intercepts and routes into the same Nexus Search flow as the address
   bar.
 - Search requests can include a `limit` parameter. The browser clamps this to a
   safe 1-100 range and carries it from the homepage to the results page.
 - The crawler defaults to a broader but bounded crawl of 75 pages at depth 2,
   with a hard page cap of 100.
+
+## Packaging Behavior
+
+When running from source, local data is stored in the repository `data/` folder.
+When running as a packaged executable, user data is stored under the user's app
+data directory while bundled assets are loaded from the packaged resources.

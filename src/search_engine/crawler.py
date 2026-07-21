@@ -3,13 +3,13 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
 from html.parser import HTMLParser
-from pathlib import Path
 from urllib.parse import urldefrag, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
+from paths import user_data_path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-CRAWLED_PAGES_FILE = PROJECT_ROOT / "data" / "crawled_pages.json"
+
+CRAWLED_PAGES_FILE = user_data_path("crawled_pages.json")
 USER_AGENT = "PersonalBrowserCrawler/1.0"
 DEFAULT_CRAWLER_MAX_PAGES = 75
 DEFAULT_CRAWLER_MAX_DEPTH = 2

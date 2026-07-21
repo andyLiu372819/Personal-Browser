@@ -5,8 +5,9 @@ from search_engine import (
     SEARCH_RESULT_LIMIT_OPTIONS,
     normalize_result_limit,
 )
+from theme import APP_NAME, APP_TAGLINE, css_variables, render_brand_mark
 
-from .internal_pages import INTERNAL_SEARCH_URL
+from .internal_pages import INTERNAL_SEARCH_URL, INTERNAL_SETTINGS_URL
 
 
 def render_result_limit_options(selected_limit):
@@ -20,8 +21,13 @@ def render_result_limit_options(selected_limit):
     return "\n".join(options)
 
 
-def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RESULT_LIMIT):
+def render_home_page(
+    app_name=APP_NAME,
+    result_limit=DEFAULT_SEARCH_RESULT_LIMIT,
+    settings=None,
+):
     safe_app_name = escape(app_name)
+    safe_tagline = escape(APP_TAGLINE)
     result_limit_options = render_result_limit_options(result_limit)
 
     return f"""
@@ -33,15 +39,7 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
         <title>{safe_app_name}</title>
         <style>
             :root {{
-                color-scheme: light;
-                --ink: #172016;
-                --muted: #5b6656;
-                --panel: rgba(255, 255, 255, 0.76);
-                --panel-border: rgba(255, 255, 255, 0.9);
-                --green: #6f925d;
-                --green-dark: #49683d;
-                --gold: #e5bf68;
-                --mist: #eef4ea;
+                {css_variables(settings)}
             }}
 
             * {{
@@ -54,7 +52,7 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
                 display: grid;
                 place-items: center;
                 overflow: hidden;
-                color: var(--ink);
+                color: var(--text);
                 font-family:
                     Inter,
                     "Segoe UI",
@@ -62,10 +60,12 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
                     -apple-system,
                     sans-serif;
                 background:
-                    radial-gradient(circle at 18% 18%, #fff8da 0, transparent 28%),
-                    radial-gradient(circle at 84% 24%, #c8e1ba 0, transparent 30%),
-                    radial-gradient(circle at 50% 105%, #9bbf88 0, transparent 42%),
-                    linear-gradient(135deg, #f8fbf4 0%, #e9f1e4 47%, #dce9d4 100%);
+                    linear-gradient(var(--grid) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+                    radial-gradient(circle at 18% 18%, var(--accent-glow), transparent 30%),
+                    radial-gradient(circle at 84% 24%, var(--accent-soft), transparent 32%),
+                    linear-gradient(135deg, var(--background) 0%, var(--background-2) 100%);
+                background-size: 34px 34px, 34px 34px, auto, auto, auto;
             }}
 
             .orb {{
@@ -81,25 +81,25 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
             .orb.one {{
                 left: -11rem;
                 top: -9rem;
-                background: conic-gradient(from 120deg, #f4d77c, #8fb37e, #ffffff);
+                background: conic-gradient(from 120deg, var(--accent), var(--accent-2), transparent);
             }}
 
             .orb.two {{
                 right: -12rem;
                 bottom: -13rem;
-                background: conic-gradient(from 260deg, #ffffff, #bfd7b2, #6f925d);
+                background: conic-gradient(from 260deg, transparent, var(--accent-soft), var(--accent));
             }}
 
             main {{
                 position: relative;
                 width: min(860px, calc(100vw - 40px));
                 padding: 52px;
-                border: 1px solid var(--panel-border);
+                border: 1px solid var(--border);
                 border-radius: 36px;
                 background: var(--panel);
                 box-shadow:
-                    0 28px 80px rgba(42, 68, 35, 0.16),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+                    0 28px 80px var(--shadow),
+                    inset 0 1px 0 var(--accent-soft);
                 backdrop-filter: blur(22px);
             }}
 
@@ -108,7 +108,7 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
                 height: 128px;
                 margin: 0 auto 18px;
                 display: block;
-                filter: drop-shadow(0 18px 26px rgba(56, 86, 48, 0.22));
+                filter: drop-shadow(0 18px 26px var(--accent-glow));
             }}
 
             h1 {{
@@ -117,6 +117,7 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
                 font-size: clamp(3rem, 9vw, 6.6rem);
                 line-height: 0.92;
                 letter-spacing: -0.08em;
+                text-transform: uppercase;
             }}
 
             .subtitle {{
@@ -134,10 +135,10 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
                 width: min(680px, 100%);
                 margin: 0 auto;
                 padding: 9px;
-                border: 1px solid rgba(73, 104, 61, 0.18);
+                border: 1px solid var(--border);
                 border-radius: 999px;
-                background: rgba(255, 255, 255, 0.82);
-                box-shadow: 0 20px 48px rgba(54, 82, 47, 0.14);
+                background: var(--panel);
+                box-shadow: 0 20px 48px var(--shadow);
             }}
 
             input {{
@@ -146,33 +147,33 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
                 outline: 0;
                 padding: 16px 20px;
                 border-radius: 999px;
-                color: var(--ink);
+                color: var(--text);
                 background: transparent;
                 font-size: 1rem;
             }}
 
             input::placeholder {{
-                color: #829079;
+                color: var(--muted);
             }}
 
             button {{
                 border: 0;
                 border-radius: 999px;
                 padding: 0 26px;
-                color: white;
+                color: #F8FAFC;
                 background:
-                    linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+                    linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
                 font-weight: 700;
                 cursor: pointer;
-                box-shadow: 0 10px 22px rgba(73, 104, 61, 0.24);
+                box-shadow: 0 10px 22px var(--accent-glow);
             }}
 
             select {{
-                border: 1px solid rgba(73, 104, 61, 0.16);
+                border: 1px solid var(--border);
                 border-radius: 999px;
                 padding: 0 12px;
-                color: var(--ink);
-                background: rgba(255, 255, 255, 0.72);
+                color: var(--text);
+                background: var(--input);
                 font-weight: 700;
             }}
 
@@ -192,9 +193,22 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
 
             .hint {{
                 padding: 8px 12px;
-                border: 1px solid rgba(73, 104, 61, 0.12);
+                border: 1px solid var(--border);
                 border-radius: 999px;
-                background: rgba(255, 255, 255, 0.46);
+                background: var(--surface-2);
+            }}
+
+            .settings-link {{
+                position: absolute;
+                right: 24px;
+                top: 24px;
+                color: var(--muted);
+                text-decoration: none;
+                font-weight: 800;
+            }}
+
+            .settings-link:hover {{
+                color: var(--accent);
             }}
 
             @media (max-width: 640px) {{
@@ -223,35 +237,13 @@ def render_home_page(app_name="Personal Browser", result_limit=DEFAULT_SEARCH_RE
         <div class="orb two"></div>
 
         <main aria-label="{safe_app_name} home">
-            <svg class="mark" viewBox="0 0 140 140" role="img" aria-label="Personal search compass">
-                <defs>
-                    <linearGradient id="leafGradient" x1="22" x2="118" y1="116" y2="18">
-                        <stop offset="0" stop-color="#49683d" />
-                        <stop offset="0.56" stop-color="#7fa46d" />
-                        <stop offset="1" stop-color="#e5bf68" />
-                    </linearGradient>
-                </defs>
-                <circle cx="70" cy="70" r="58" fill="rgba(255,255,255,0.68)" />
-                <circle cx="70" cy="70" r="49" fill="none" stroke="#49683d" stroke-width="5" opacity="0.18" />
-                <path
-                    d="M93 31 C68 38 47 57 40 86 C66 80 87 63 100 38 C103 33 99 29 93 31Z"
-                    fill="url(#leafGradient)"
-                />
-                <path
-                    d="M43 96 C57 78 75 61 99 38"
-                    fill="none"
-                    stroke="white"
-                    stroke-linecap="round"
-                    stroke-width="7"
-                    opacity="0.82"
-                />
-                <circle cx="44" cy="98" r="9" fill="#e5bf68" />
-            </svg>
+            <a class="settings-link" href="{INTERNAL_SETTINGS_URL}">Settings</a>
+            {render_brand_mark(settings)}
 
             <h1>{safe_app_name}</h1>
             <p class="subtitle">
-                Search crawled pages and the wider web from one calm place. Sites
-                you have visited before get a small ranking boost.
+                {safe_tagline} Search crawled pages and the wider web from one
+                command bar. Sites you have visited before get a subtle boost.
             </p>
 
             <form action="{INTERNAL_SEARCH_URL}" method="get">

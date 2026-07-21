@@ -1,10 +1,10 @@
 import json
 from datetime import datetime
-from pathlib import Path
+
+from paths import user_data_path
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-HISTORY_FILE = PROJECT_ROOT / "data" / "history.json"
+HISTORY_FILE = user_data_path("history.json")
 
 
 def load_history():
@@ -16,8 +16,11 @@ def load_history():
 
 
 def save_history(history):
+    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+
     with HISTORY_FILE.open("w", encoding="utf-8") as file:
         json.dump(history, file, indent=2)
+        file.write("\n")
 
 
 def add_history_entry(title, url):

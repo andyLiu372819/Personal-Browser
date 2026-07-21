@@ -1,10 +1,10 @@
 import json
 from datetime import datetime
-from pathlib import Path
+
+from paths import user_data_path
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-BOOKMARKS_FILE = PROJECT_ROOT / "data" / "bookmarks.json"
+BOOKMARKS_FILE = user_data_path("bookmarks.json")
 
 
 def load_bookmarks():

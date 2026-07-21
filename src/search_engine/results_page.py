@@ -1,6 +1,8 @@
 from html import escape
 from urllib.parse import quote_plus
 
+from theme import APP_NAME, css_variables, render_brand_mark
+
 from .hybrid_search import (
     DEFAULT_SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_LIMIT_OPTIONS,
@@ -39,7 +41,12 @@ def render_result_limit_options(selected_limit):
     return "\n".join(options)
 
 
-def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT):
+def render_results_page(
+    query,
+    results,
+    result_limit=DEFAULT_SEARCH_RESULT_LIMIT,
+    settings=None,
+):
     result_limit = normalize_result_limit(result_limit)
     safe_query = escape(query)
     safe_query_attribute = escape(query, quote=True)
@@ -93,7 +100,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
             <div class="empty-icon" aria-hidden="true">?</div>
             <h2>No results found yet</h2>
             <p>
-                Personal Search could not find local or live web results for this query.
+                Nexus Search could not find local or live web results for this query.
                 Try a different phrase, or open a provider search page directly.
             </p>
             <div class="empty-actions">
@@ -113,17 +120,9 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
         <title>Search results for {safe_query}</title>
         <style>
             :root {{
-                --background: #f8faf6;
-                --surface: #ffffff;
-                --surface-soft: #eef5ea;
-                --border: #dce6d5;
-                --text: #172016;
-                --muted: #66715f;
-                --link: #1a5cc8;
-                --url: #2f7147;
-                --green: #668357;
-                --green-dark: #48683c;
-                --shadow: rgba(42, 68, 35, 0.1);
+                {css_variables(settings)}
+                --link: var(--accent);
+                --url: var(--muted);
             }}
 
             * {{
@@ -134,9 +133,12 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 margin: 0;
                 color: var(--text);
                 background:
-                    radial-gradient(circle at 12% 0%, rgba(229, 191, 104, 0.24), transparent 24rem),
-                    radial-gradient(circle at 90% 8%, rgba(143, 179, 126, 0.28), transparent 28rem),
+                    linear-gradient(var(--grid) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid) 1px, transparent 1px),
+                    radial-gradient(circle at 12% 0%, var(--accent-glow), transparent 24rem),
+                    radial-gradient(circle at 90% 8%, var(--accent-soft), transparent 28rem),
                     var(--background);
+                background-size: 34px 34px, 34px 34px, auto, auto, auto;
                 font-family:
                     Inter,
                     "Segoe UI",
@@ -150,7 +152,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 top: 0;
                 z-index: 1;
                 border-bottom: 1px solid var(--border);
-                background: rgba(248, 250, 246, 0.92);
+                background: var(--panel);
                 backdrop-filter: blur(18px);
             }}
 
@@ -168,22 +170,16 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 display: flex;
                 align-items: center;
                 gap: 10px;
-                color: var(--green-dark);
+                color: var(--accent);
                 font-weight: 800;
                 letter-spacing: -0.04em;
                 text-decoration: none;
                 white-space: nowrap;
             }}
 
-            .brand-mark {{
-                display: grid;
-                place-items: center;
+            .brand .mark {{
                 width: 36px;
                 height: 36px;
-                border-radius: 12px;
-                color: white;
-                background: linear-gradient(135deg, var(--green), var(--green-dark));
-                box-shadow: 0 8px 22px var(--shadow);
             }}
 
             form {{
@@ -193,7 +189,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 padding: 6px;
                 border: 1px solid var(--border);
                 border-radius: 999px;
-                background: var(--surface);
+                background: var(--panel);
                 box-shadow: 0 14px 34px var(--shadow);
             }}
 
@@ -212,8 +208,8 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 border: 0;
                 border-radius: 999px;
                 padding: 0 22px;
-                color: white;
-                background: linear-gradient(135deg, var(--green), var(--green-dark));
+                color: #F8FAFC;
+                background: linear-gradient(135deg, var(--accent), var(--accent-2));
                 font-weight: 700;
                 cursor: pointer;
             }}
@@ -223,7 +219,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 border-radius: 999px;
                 padding: 0 10px;
                 color: var(--text);
-                background: var(--surface-soft);
+                background: var(--surface-2);
                 font-weight: 700;
             }}
 
@@ -287,7 +283,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
 
             .snippet {{
                 margin: 0;
-                color: #3d4738;
+                color: var(--text);
                 font-size: 0.98rem;
                 line-height: 1.58;
             }}
@@ -311,23 +307,23 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
             }}
 
             .source-chip.web {{
-                color: #174ea6;
-                background: #eaf1ff;
+                color: var(--accent);
+                background: var(--accent-soft);
             }}
 
             .source-chip.local {{
-                color: var(--green-dark);
-                background: var(--surface-soft);
+                color: var(--text);
+                background: var(--surface-2);
             }}
 
             .source-chip.visited {{
-                color: #7a4d00;
-                background: #fff4d8;
+                color: var(--text);
+                background: var(--accent-soft);
             }}
 
             .score {{
                 color: var(--muted);
-                background: #f0f2ee;
+                background: var(--surface-2);
             }}
 
             aside {{
@@ -335,7 +331,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 padding: 20px;
                 border: 1px solid var(--border);
                 border-radius: 22px;
-                background: rgba(255, 255, 255, 0.72);
+                background: var(--panel);
                 box-shadow: 0 16px 40px var(--shadow);
             }}
 
@@ -356,7 +352,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 padding: 42px;
                 border: 1px solid var(--border);
                 border-radius: 28px;
-                background: var(--surface);
+                background: var(--panel);
                 box-shadow: 0 18px 44px var(--shadow);
                 text-align: center;
             }}
@@ -368,8 +364,8 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 height: 58px;
                 margin: 0 auto 16px;
                 border-radius: 20px;
-                color: white;
-                background: linear-gradient(135deg, var(--green), var(--green-dark));
+                color: #F8FAFC;
+                background: linear-gradient(135deg, var(--accent), var(--accent-2));
                 font-size: 1.6rem;
                 font-weight: 900;
             }}
@@ -387,7 +383,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
                 border: 1px solid var(--border);
                 border-radius: 999px;
                 color: var(--link);
-                background: var(--surface-soft);
+                background: var(--surface-2);
                 text-decoration: none;
                 font-weight: 700;
             }}
@@ -417,9 +413,9 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
     <body>
         <header>
             <div class="topbar">
-                <a class="brand" href="personal-browser://home" aria-label="Personal Browser home">
-                    <span class="brand-mark" aria-hidden="true">P</span>
-                    <span>Personal Search</span>
+                <a class="brand" href="personal-browser://home" aria-label="{APP_NAME} home">
+                    {render_brand_mark(settings)}
+                    <span>Nexus Search</span>
                 </a>
                 <form action="personal-browser://search" method="get">
                     <input
@@ -446,7 +442,7 @@ def render_results_page(query, results, result_limit=DEFAULT_SEARCH_RESULT_LIMIT
             <aside>
                 <h2>How this search works</h2>
                 <p>
-                    Personal Search blends crawled pages and live web results,
+                    Nexus Search blends crawled pages and live web results,
                     then boosts sites that appear in your history.
                 </p>
             </aside>

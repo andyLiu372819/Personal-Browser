@@ -18,8 +18,10 @@ class HomePageTests(unittest.TestCase):
         self.assertIn('method="get"', html)
         self.assertIn('name="q"', html)
         self.assertIn('name="limit"', html)
+        self.assertIn("Nexus Browser", html)
         self.assertIn("Search crawled pages and the wider web", html)
         self.assertIn("History boost", html)
+        self.assertIn("personal-browser://settings", html)
 
     def test_renders_selected_result_limit(self):
         html = render_home_page(result_limit=75)

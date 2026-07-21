@@ -2,8 +2,11 @@
   "homepage": "personal-browser://home",
   "default_search_engine": "personal",
   "fallback_search_engine": "duckduckgo",
-  "search_results_limit": 10,
+  "search_results_limit": 100,
   "crawler_max_pages": 75,
   "crawler_max_depth": 2,
-  "theme": "dark"
+  "theme": "dark",
+  "theme_mode": "dark",
+  "theme_accent": "emerald",
+  "custom_accent_color": "#38BDF8"
 }

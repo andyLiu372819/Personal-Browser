@@ -1,6 +1,6 @@
-# Personal Browser
+# Nexus Browser
 
-Personal Browser is a desktop web browser built with Python, PySide6, and Qt WebEngine. The goal is to create a clean personal browsing environment with tabs, bookmarks, history, settings, and a custom search experience.
+Nexus Browser is a desktop web browser built with Python, PySide6, and Qt WebEngine. The goal is to create a clean, tech-forward personal browsing environment with tabs, bookmarks, history, settings, custom themes, crawling, and a custom search experience.
 
 This repository currently contains the project design skeleton. The first implementation milestone is a simple browser window that opens a custom local homepage and accepts either URLs or search queries from the homepage or address bar.
 
@@ -13,9 +13,11 @@ This repository currently contains the project design skeleton. The first implem
 - Local bookmarks
 - Local browsing history
 - Settings saved as JSON
-- Personal search over crawled pages and web results, with history-based ranking boosts
+- Nexus Search over crawled pages and web results, with history-based ranking boosts
 - Bounded crawler for indexing selected websites
 - User-selectable search result counts up to 100 results
+- Proper in-browser settings page
+- Light/dark mode plus selectable accent themes and a custom accent color
 
 ## Project Structure
 
@@ -34,9 +36,19 @@ docs/             Design notes, milestones, and feature planning
 Build a desktop browser that:
 
 - Opens a main window
-- Loads the custom Personal Browser homepage
+- Loads the custom Nexus Browser homepage
 - Lets the user type a URL or search query
 - Lets the user choose how many search results to display
 - Supports basic navigation controls
-- Uses Personal Search as the default search engine, including live web results
+- Uses Nexus Search as the default search engine, including live web results
 - Boosts results from sites the user has already visited
+
+## Building an Executable
+
+The project includes a PyInstaller spec and build script:
+
+```powershell
+.\scripts\build_exe.ps1
+```
+
+The packaged app is produced under `dist/NexusBrowser/`.

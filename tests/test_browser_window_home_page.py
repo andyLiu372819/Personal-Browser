@@ -74,7 +74,7 @@ class BrowserWindowHomePageTests(unittest.TestCase):
 
         self.assertEqual(fake_window.internal_pages[0][0], fake_window.web_view)
         self.assertEqual(fake_window.internal_pages[0][1], "home")
-        self.assertIn("Personal Browser", fake_window.internal_pages[0][2])
+        self.assertIn("Nexus Browser", fake_window.internal_pages[0][2])
         self.assertIn("personal-browser://search", fake_window.internal_pages[0][2])
         self.assertIn('<option value="50" selected>', fake_window.internal_pages[0][2])
         self.assertIsNone(fake_window.web_view.loaded_url)
@@ -95,6 +95,7 @@ class BrowserWindowHomePageTests(unittest.TestCase):
             search_engine_name,
             fallback_search_engine_name,
             result_limit,
+            render_function=None,
         ):
             self.assertEqual(text, "python docs")
             self.assertEqual(search_engine_name, "personal")

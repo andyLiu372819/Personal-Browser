@@ -74,6 +74,7 @@ class BrowserWindowAddressBarTests(unittest.TestCase):
             search_engine_name,
             fallback_search_engine_name,
             result_limit,
+            render_function=None,
         ):
             self.assertEqual(text, "example.com")
             self.assertEqual(search_engine_name, "personal")
@@ -96,6 +97,7 @@ class BrowserWindowAddressBarTests(unittest.TestCase):
             search_engine_name,
             fallback_search_engine_name,
             result_limit,
+            render_function=None,
         ):
             self.assertEqual(text, "python docs")
             self.assertEqual(search_engine_name, "personal")
@@ -121,6 +123,7 @@ class BrowserWindowAddressBarTests(unittest.TestCase):
             search_engine_name,
             fallback_search_engine_name,
             result_limit,
+            render_function=None,
         ):
             self.fail("Blank address bar input should return before resolving")
 

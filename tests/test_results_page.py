@@ -49,7 +49,7 @@ class ResultsPageTests(unittest.TestCase):
         self.assertIn('name="q"', html)
         self.assertIn('name="limit"', html)
         self.assertIn('value="python docs"', html)
-        self.assertIn("Personal Search", html)
+        self.assertIn("Nexus Search", html)
 
     def test_renders_selected_result_limit(self):
         html = render_results_page("python docs", [], result_limit=100)

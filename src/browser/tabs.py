@@ -3,15 +3,26 @@ from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QTabWidget
 
-from .internal_pages import extract_internal_search_request
+from .internal_pages import (
+    extract_internal_search_request,
+    extract_internal_settings_request,
+    is_internal_home_request,
+)
 
 
 class BrowserPage(QWebEnginePage):
     """A web page that handles browser-owned internal navigation."""
 
+    internal_home_requested = Signal()
     internal_search_requested = Signal(str, int)
+    internal_settings_requested = Signal()
+    internal_settings_save_requested = Signal(dict)
 
     def acceptNavigationRequest(self, url, navigation_type, is_main_frame):
+        if is_main_frame and is_internal_home_request(url):
+            self.internal_home_requested.emit()
+            return False
+
         request = extract_internal_search_request(url)
 
         if is_main_frame and request is not None:
@@ -22,20 +33,41 @@ class BrowserPage(QWebEnginePage):
                 )
             return False
 
+        settings_request = extract_internal_settings_request(url)
+
+        if is_main_frame and settings_request is not None:
+            if settings_request.should_save:
+                self.internal_settings_save_requested.emit(settings_request.values)
+            else:
+                self.internal_settings_requested.emit()
+            return False
+
         return super().acceptNavigationRequest(url, navigation_type, is_main_frame)
 
 
 class BrowserView(QWebEngineView):
     """A web view that opens pop-up requests in a browser tab."""
 
+    internal_home_requested = Signal()
     internal_search_requested = Signal(str, int)
+    internal_settings_requested = Signal()
+    internal_settings_save_requested = Signal(dict)
 
     def __init__(self, tab_manager):
         super().__init__()
         self.tab_manager = tab_manager
         self.browser_page = BrowserPage(self)
+        self.browser_page.internal_home_requested.connect(
+            self.internal_home_requested.emit
+        )
         self.browser_page.internal_search_requested.connect(
             self.internal_search_requested.emit
+        )
+        self.browser_page.internal_settings_requested.connect(
+            self.internal_settings_requested.emit
+        )
+        self.browser_page.internal_settings_save_requested.connect(
+            self.internal_settings_save_requested.emit
         )
         self.setPage(self.browser_page)
 

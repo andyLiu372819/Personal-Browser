@@ -73,7 +73,7 @@ class BrowserWindowHistoryPageTests(unittest.TestCase):
 
         browser_window.load_history = lambda: history_entries
 
-        def fake_render(entries):
+        def fake_render(entries, settings=None):
             self.assertEqual(entries, history_entries)
             return "<html>history page</html>"
 

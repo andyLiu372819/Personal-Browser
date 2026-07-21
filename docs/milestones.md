@@ -39,7 +39,7 @@
 - Save bookmarks to `data/bookmarks.json`.
 - Load settings from `data/settings.json`.
 
-## Milestone 7: Personal Search
+## Milestone 7: Nexus Search
 
 - Search local history and bookmarks.
 - Show local results before falling back to a public search engine.

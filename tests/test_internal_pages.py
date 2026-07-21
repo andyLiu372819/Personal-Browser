@@ -82,6 +82,33 @@ class InternalPagesTests(unittest.TestCase):
             internal_pages.extract_internal_search_query("https://example.com")
         )
 
+    def test_identifies_internal_home_request(self):
+        self.assertTrue(
+            internal_pages.is_internal_home_request("personal-browser://home")
+        )
+        self.assertFalse(
+            internal_pages.is_internal_home_request("personal-browser://settings")
+        )
+
+    def test_extracts_internal_settings_open_request(self):
+        request = internal_pages.extract_internal_settings_request(
+            "personal-browser://settings"
+        )
+
+        self.assertIsNotNone(request)
+        self.assertFalse(request.should_save)
+        self.assertEqual(request.values, {})
+
+    def test_extracts_internal_settings_save_request(self):
+        request = internal_pages.extract_internal_settings_request(
+            "personal-browser://settings/save?theme_mode=light&theme_accent=violet"
+        )
+
+        self.assertIsNotNone(request)
+        self.assertTrue(request.should_save)
+        self.assertEqual(request.values["theme_mode"], "light")
+        self.assertEqual(request.values["theme_accent"], "violet")
+
 
 if __name__ == "__main__":
     unittest.main()
